@@ -10,7 +10,9 @@ from sdlc_eval.paths import (
     DATA_DIR_ENV_VAR,
     events_dir,
     repo_events_dir,
+    repo_snapshots_dir,
     resolve_data_dir,
+    snapshots_dir,
 )
 
 
@@ -60,4 +62,30 @@ def test_repo_events_dir_sanitizes_slashes(
     monkeypatch.setenv(DATA_DIR_ENV_VAR, str(tmp_path))
     resolved = repo_events_dir("chijunzheng/agentic-sdlc-eval")
     assert resolved.parent == tmp_path / "events"
+    assert "/" not in resolved.name
+
+
+def test_snapshots_dir_is_under_data_dir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """GitHub snapshots live beside the Event Log under the data dir (ADR 0003)."""
+    monkeypatch.setenv(DATA_DIR_ENV_VAR, str(tmp_path))
+    assert snapshots_dir() == tmp_path / "snapshots"
+
+
+def test_repo_snapshots_dir_namespaces_by_repo(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv(DATA_DIR_ENV_VAR, str(tmp_path))
+    expected = tmp_path / "snapshots" / "owners-manual"
+    assert repo_snapshots_dir("owners-manual") == expected
+
+
+def test_repo_snapshots_dir_sanitizes_slashes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A repo given as owner/name must not create nested snapshot directories."""
+    monkeypatch.setenv(DATA_DIR_ENV_VAR, str(tmp_path))
+    resolved = repo_snapshots_dir("chijunzheng/agentic-sdlc-eval")
+    assert resolved.parent == tmp_path / "snapshots"
     assert "/" not in resolved.name

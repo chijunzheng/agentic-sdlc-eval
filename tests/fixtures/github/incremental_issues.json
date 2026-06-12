@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1001,
+    "number": 1,
+    "title": "First issue (edited)",
+    "state": "closed",
+    "user": { "login": "alice", "type": "User" },
+    "created_at": "2026-06-01T09:00:00Z",
+    "updated_at": "2026-06-08T10:00:00Z"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "id": 5003,
+    "pull_request_number": 3,
+    "user": { "login": "coderabbitai[bot]", "type": "Bot" },
+    "state": "COMMENTED",
+    "body": "Consider extracting this helper.",
+    "submitted_at": "2026-06-02T17:00:00Z",
+    "commit_id": "789aaa"
+  }
+]

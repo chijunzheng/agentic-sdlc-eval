@@ -1,0 +1,29 @@
+[
+  {
+    "id": 5001,
+    "pull_request_number": 7,
+    "user": { "login": "chatgpt-codex-connector[bot]", "type": "Bot" },
+    "state": "CHANGES_REQUESTED",
+    "body": "Found a null-deref on line 42.",
+    "submitted_at": "2026-06-06T13:00:00Z",
+    "commit_id": "abc123"
+  },
+  {
+    "id": 5002,
+    "pull_request_number": 7,
+    "user": { "login": "carol", "type": "User" },
+    "state": "APPROVED",
+    "body": "LGTM after the fix.",
+    "submitted_at": "2026-06-06T14:30:00Z",
+    "commit_id": "def456"
+  },
+  {
+    "id": 5004,
+    "pull_request_number": 7,
+    "user": { "login": "dave", "type": "User" },
+    "state": "APPROVED",
+    "body": "Second approval before merge.",
+    "submitted_at": "2026-06-08T09:00:00Z",
+    "commit_id": "def456"
+  }
+]

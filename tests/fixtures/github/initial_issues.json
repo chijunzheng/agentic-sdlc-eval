@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1001,
+    "number": 1,
+    "title": "First issue",
+    "state": "open",
+    "user": { "login": "alice", "type": "User" },
+    "created_at": "2026-06-01T09:00:00Z",
+    "updated_at": "2026-06-05T12:00:00Z"
+  },
+  {
+    "id": 1002,
+    "number": 2,
+    "title": "Second issue",
+    "state": "closed",
+    "user": { "login": "bob", "type": "User" },
+    "created_at": "2026-06-02T09:00:00Z",
+    "updated_at": "2026-06-04T08:00:00Z"
+  },
+  {
+    "id": 1003,
+    "number": 7,
+    "title": "This is actually a PR returned by the issues endpoint",
+    "state": "open",
+    "user": { "login": "alice", "type": "User" },
+    "pull_request": { "url": "https://api.github.com/repos/o/r/pulls/7" },
+    "created_at": "2026-06-03T09:00:00Z",
+    "updated_at": "2026-06-06T15:00:00Z"
+  }
+]
