@@ -40,3 +40,29 @@ def test_status_prints_total(data_dir: Path) -> None:
     result = CliRunner().invoke(main, ["status"])
     assert result.exit_code == 0
     assert "3" in result.output
+
+
+def test_status_shows_attribution_rate(data_dir: Path) -> None:
+    eventlog.append(
+        {"event_type": "a", "repo": "r", "session_id": "s1", "attributed": True, "issue": 14}
+    )
+    eventlog.append(
+        {"event_type": "b", "repo": "r", "session_id": "s2", "attributed": True, "issue": 7}
+    )
+    eventlog.append(
+        {"event_type": "c", "repo": "r", "session_id": "s3", "attributed": False}
+    )
+
+    result = CliRunner().invoke(main, ["status"])
+    assert result.exit_code == 0
+    assert "Attribution" in result.output
+    # 2 of 3 attributed.
+    assert "2/3" in result.output
+    assert "66.7%" in result.output
+
+
+def test_status_attribution_rate_handles_empty_log(data_dir: Path) -> None:
+    """No events → no division-by-zero; status still exits cleanly."""
+    result = CliRunner().invoke(main, ["status"])
+    assert result.exit_code == 0
+    assert "No events" in result.output

@@ -12,7 +12,7 @@ import sys
 import click
 
 from sdlc_eval.hooks.session_start import handle_session_start
-from sdlc_eval.reader import count_events_by_repo
+from sdlc_eval.reader import attribution_rate, count_events_by_repo
 
 
 @click.group()
@@ -37,6 +37,10 @@ def status() -> None:
 
     total = sum(counts.values())
     click.echo(f"  {'TOTAL'.ljust(width)}  {total}")
+
+    attributed, attr_total = attribution_rate()
+    percent = (attributed / attr_total * 100) if attr_total else 0.0
+    click.echo(f"Attribution rate: {attributed}/{attr_total} ({percent:.1f}%)")
 
 
 @main.group()
