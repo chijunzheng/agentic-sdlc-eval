@@ -41,3 +41,18 @@ def _sanitize_repo(repo: str) -> str:
 def repo_events_dir(repo: str) -> Path:
     """Return the Event Log directory for a single repo."""
     return events_dir() / _sanitize_repo(repo)
+
+
+def snapshots_dir() -> Path:
+    """Return the directory holding per-repo GitHub snapshot subdirectories.
+
+    GitHub snapshots (issues, PRs, reviews, review comments, CI runs) sit beside
+    the Event Log under the same data root; DuckDB joins the two in place
+    (ADR 0003).
+    """
+    return resolve_data_dir() / "snapshots"
+
+
+def repo_snapshots_dir(repo: str) -> Path:
+    """Return the GitHub snapshot directory for a single repo."""
+    return snapshots_dir() / _sanitize_repo(repo)

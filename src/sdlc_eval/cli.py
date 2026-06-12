@@ -11,6 +11,8 @@ import sys
 
 import click
 
+from sdlc_eval.github import collect
+from sdlc_eval.github.gh import GhError
 from sdlc_eval.hooks.session_start import handle_session_start
 from sdlc_eval.reader import count_events_by_repo
 
@@ -37,6 +39,28 @@ def status() -> None:
 
     total = sum(counts.values())
     click.echo(f"  {'TOTAL'.ljust(width)}  {total}")
+
+
+@main.command(name="collect")
+@click.argument("repo")
+def collect_command(repo: str) -> None:
+    """Snapshot a repo's issues, PRs, reviews, comments, and CI runs.
+
+    REPO is the ``owner/name`` identifier. Only items updated since the last
+    sync watermark are fetched, so re-running is incremental. Requires the
+    ``gh`` CLI to be installed and authenticated.
+    """
+    try:
+        result = collect(repo)
+    except GhError as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo(f"Collected GitHub snapshots for {result.repo}:")
+    width = max(len(entity) for entity in result.counts)
+    for entity in result.counts:
+        click.echo(f"  {entity.ljust(width)}  {result.counts[entity]}")
+    if result.watermark is not None:
+        click.echo(f"  watermark: {result.watermark}")
 
 
 @main.group()
