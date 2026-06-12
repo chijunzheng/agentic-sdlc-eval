@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS / editors
+.DS_Store
+Icon?
+
+# Local data — the Event Log lives outside the repo (ADR 0003), never here
+events/
+*.jsonl
+*.duckdb
