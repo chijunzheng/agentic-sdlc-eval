@@ -50,6 +50,26 @@ def test_run_gh_api_builds_paginated_command(monkeypatch: pytest.MonkeyPatch) ->
     assert "sort=updated" in joined
 
 
+def test_run_gh_api_forces_get_method(monkeypatch: pytest.MonkeyPatch) -> None:
+    """-f fields silently switch gh api to POST unless --method GET is explicit.
+
+    A POST here is not just a failure mode: POST repos/o/r/issues *creates an
+    issue*. The seam is read-only by contract, so every command must pin GET.
+    """
+    captured: dict[str, list[str]] = {}
+
+    def _runner(cmd: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        captured["cmd"] = cmd
+        return subprocess.CompletedProcess(cmd, 0, stdout="[]", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", _runner)
+    run_gh_api("repos/o/r/issues", params={"state": "all"})
+
+    cmd = captured["cmd"]
+    assert "--method" in cmd
+    assert cmd[cmd.index("--method") + 1] == "GET"
+
+
 def test_run_gh_api_paginate_concatenates_arrays(monkeypatch: pytest.MonkeyPatch) -> None:
     """gh --paginate with --slurp returns a list of pages; we flatten them."""
     pages = [[{"id": 1}], [{"id": 2}, {"id": 3}]]

@@ -63,7 +63,8 @@ class RecordingRunner:
             return _load(f"{name}.json")
         if path.endswith("/actions/runs"):
             name = "incremental_ci_runs" if self.incremental else "initial_ci_runs"
-            return _load(f"{name}.json")
+            # The seam slurps object-shaped endpoints: a list of page objects.
+            return [_load(f"{name}.json")]
 
         raise AssertionError(f"unexpected path requested: {path}")
 
@@ -287,7 +288,7 @@ def test_collect_skips_pull_without_number(data_dir: Path) -> None:
         def __call__(self, path: str, **kwargs: Any) -> Any:
             self.calls.append(path)
             if path.endswith("/actions/runs"):
-                return {"total_count": 0, "workflow_runs": []}
+                return [{"total_count": 0, "workflow_runs": []}]
             if path.endswith("/pulls"):
                 return [{"id": 1, "updated_at": "2026-06-06T00:00:00Z"}]
             return []  # issues, and any review/comment path
@@ -300,11 +301,50 @@ def test_collect_skips_pull_without_number(data_dir: Path) -> None:
     assert result.counts["reviews"] == 0
 
 
+def test_ci_runs_aggregated_across_paginated_pages(data_dir: Path) -> None:
+    """actions/runs is object-shaped: multi-page output must be slurped and merged.
+
+    With --paginate and >per_page runs, gh emits one JSON object per page;
+    without --slurp the concatenation is unparseable, and without merging only
+    one page's workflow_runs would survive. Both pages' runs must land.
+    """
+
+    class TwoPageRunner:
+        def __call__(
+            self,
+            path: str,
+            *,
+            params: Mapping[str, str] | None = None,
+            slurp: bool = False,
+        ) -> Any:
+            if path.endswith("/actions/runs"):
+                assert slurp is True  # object pages are unparseable un-slurped
+                return [
+                    {
+                        "total_count": 150,
+                        "workflow_runs": [
+                            {"id": 1, "updated_at": "2026-06-06T00:00:00Z"}
+                        ],
+                    },
+                    {
+                        "total_count": 150,
+                        "workflow_runs": [
+                            {"id": 2, "updated_at": "2026-06-07T00:00:00Z"}
+                        ],
+                    },
+                ]
+            return []
+
+    collect(REPO, runner=TwoPageRunner())
+    runs = read_snapshot(REPO, "ci_runs")
+    assert {r["id"] for r in runs} == {1, 2}
+
+
 def test_collect_on_empty_repo_is_noop(data_dir: Path) -> None:
     class EmptyRunner:
         def __call__(self, path: str, **kwargs: Any) -> Any:
             if path.endswith("/actions/runs"):
-                return {"total_count": 0, "workflow_runs": []}
+                return [{"total_count": 0, "workflow_runs": []}]
             return []
 
     result = collect(REPO, runner=EmptyRunner())

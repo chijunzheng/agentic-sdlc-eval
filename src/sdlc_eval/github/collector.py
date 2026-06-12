@@ -121,9 +121,15 @@ def _fetch_pull_review_comments(
 
 
 def _fetch_ci_runs(runner: GhRunner, repo: str, since: str | None) -> list[dict[str, Any]]:
+    # actions/runs is object-shaped ({total_count, workflow_runs}), so each
+    # paginated page is a separate object: slurp the pages and merge their
+    # workflow_runs, otherwise only single-page repos would parse.
     params = {"per_page": _PER_PAGE}
-    response = runner(f"repos/{repo}/actions/runs", params=params, slurp=False) or {}
-    runs = response.get("workflow_runs", []) if isinstance(response, Mapping) else []
+    pages = runner(f"repos/{repo}/actions/runs", params=params, slurp=True) or []
+    runs: list[dict[str, Any]] = []
+    for page in pages:
+        if isinstance(page, Mapping):
+            runs.extend(dict(run) for run in page.get("workflow_runs", []))
     return _changed_since(runs, since)
 
 

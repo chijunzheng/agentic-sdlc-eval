@@ -44,13 +44,15 @@ def _build_command(
     path: str, params: Mapping[str, str] | None, slurp: bool
 ) -> list[str]:
     """Build the ``gh api`` argument vector for a paginated GET."""
-    cmd = ["gh", "api", path, "--paginate"]
+    # --method GET is mandatory, not decorative: adding -f fields switches
+    # gh api to POST unless the method is pinned, and this seam is read-only
+    # by contract (POST repos/*/issues would create an issue).
+    cmd = ["gh", "api", path, "--method", "GET", "--paginate"]
     if slurp:
         # --slurp wraps each page in an array; we flatten below.
         cmd.append("--slurp")
     for key, value in (params or {}).items():
-        # -f sends a string field; for GET requests gh maps these to query
-        # parameters, which is exactly what list endpoints expect.
+        # With the method pinned to GET, -f fields map to query parameters.
         cmd.extend(["-f", f"{key}={value}"])
     return cmd
 
