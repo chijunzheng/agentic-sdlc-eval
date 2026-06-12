@@ -150,6 +150,23 @@ def test_append_separates_repos(data_dir: Path) -> None:
     assert (data_dir / "events" / "repo-two" / "events.jsonl").exists()
 
 
+def test_append_raises_on_short_write(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A partial os.write (disk full, quota, interrupt) must not report success.
+
+    A short write leaves a torn line in the Event Log; append() must surface
+    it as a failure rather than returning the stamped event as if persisted.
+    """
+
+    def _short_write(fd: int, payload: bytes) -> int:
+        return len(payload) - 1
+
+    monkeypatch.setattr(eventlog.os, "write", _short_write)
+    with pytest.raises(OSError, match="short write"):
+        eventlog.append({"event_type": "a", "repo": "r", "session_id": "s"})
+
+
 def test_append_wraps_write_failures_as_oserror(
     data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

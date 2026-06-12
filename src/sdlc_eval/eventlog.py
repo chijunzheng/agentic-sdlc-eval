@@ -64,7 +64,12 @@ def append(event: Mapping[str, Any]) -> dict[str, Any]:
         # across concurrent writers, so lines never interleave.
         fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
         try:
-            os.write(fd, payload)
+            written = os.write(fd, payload)
+            if written != len(payload):
+                # A partial write (disk full, quota, interrupt) leaves a torn
+                # line; reporting success here would corrupt the Event Log's
+                # contract, so surface it as a failure instead.
+                raise OSError(f"short write: {written} of {len(payload)} bytes")
         finally:
             os.close(fd)
     except OSError as error:
