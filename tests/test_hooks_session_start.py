@@ -164,3 +164,25 @@ def test_handle_non_git_cwd_is_flagged_unattributed(data_dir: Path) -> None:
     assert stamped is not None
     assert stamped["repo"] == "owners-manual"
     assert stamped["attributed"] is False
+
+
+def test_handle_fallback_repo_with_inferred_issue_stays_unattributed(
+    data_dir: Path, tmp_path: Path
+) -> None:
+    """A basename-fallback repo never counts as attributed, even with an issue.
+
+    When the repo could not be resolved from git (only substituted from the
+    cwd basename), an issue inferred from payload text must not mark the event
+    attributed — issue 14 of *which repo* is unknown, and counting it would
+    inflate the attribution rate.
+    """
+    non_git_dir = tmp_path / "scratch-project"
+    non_git_dir.mkdir()
+    for cwd in (str(non_git_dir), "/nonexistent/scratch-project"):
+        stamped = handle_session_start(
+            {"session_id": "s", "cwd": cwd, "commit_message": "closes #14"}
+        )
+        assert stamped is not None  # never dropped
+        assert stamped["repo"] == "scratch-project"
+        assert stamped["attributed"] is False
+        assert stamped["issue"] == 14  # inference is retained, just not trusted

@@ -56,10 +56,13 @@ def _attribution(payload: Mapping[str, Any]) -> ResolvedContext:
     ctx = resolve(payload.get("cwd"), payload)
     if ctx.repo:
         return ctx
+    # The repo was only substituted from the cwd basename, so any inferred
+    # issue cannot be tied to a real repo — keep the issue for inspection but
+    # never count the event as attributed (it would inflate the rate).
     return ResolvedContext(
         repo=_fallback_repo(payload),
         issue=ctx.issue,
-        attributed=ctx.attributed,
+        attributed=False,
     )
 
 
